@@ -1,0 +1,122 @@
+\documentclass{article}
+\usepackage[utf8x]{inputenc}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE, echo=FALSE}
+
+<<echo=F>>=
+library(RColorBrewer)
+library(gplots)
+
+disobey = read.table("dat/disobey.dat", header=T)
+lost = read.table("dat/lost.dat", header=T)
+mistake = read.table("dat/mistake.dat", header=T)
+global = read.table("dat/global.dat", header=T)
+
+
+comp <- rbind(disobey[1:14,], lost[1:14,], mistake[1:14,])
+comp$condition <- rep(c("disobey", "lost", "mistake"), each = 14)
+comp$case <- rep(c(rep("expected", 7), rep("unexpected", 7)), 3)
+
+disobey_eng = read.table("dat/disobeyengagement.dat", header=T)
+lost_eng = read.table("dat/lostengagement.dat", header=T)
+mistake_eng = read.table("dat/mistakengagement.dat", header=T)
+global_eng = read.table("dat/globalengagement.dat", header=T)
+
+comp_eng <- rbind(disobey_eng[1:14,], lost_eng[1:14,], mistake_eng[1:14,])
+comp_eng$condition <- rep(c("disobey", "lost", "mistake"), each = 14)
+comp_eng$case <- rep(c(rep("expected", 7), rep("unexpected", 7)), 3)
+@
+
+<<fig=TRUE>>=
+barplot(t(global[,2:12]), 
+        cex.names = 0.7, 
+        names.arg = disobey$Type, 
+        col = brewer.pal(12, "Set3"), 
+        xlab="Run",
+        ylab="Interactions per minute/per child",
+        legend = colnames(global[,2:12]),
+        main = "Total interactions")
+@
+
+<<fig=TRUE>>=
+barplot(t(global_eng[,2:8]), 
+        cex.names = 0.7, 
+        names.arg = disobey$Type, 
+        col = brewer.pal(12, "Set3"), 
+        xlab="Run",
+        ylab="Interactions per minute/per child",
+        legend = colnames(global_eng[,2:8]),
+        main = "Interactions with active engagement")
+@
+
+<<fig=TRUE>>=
+plotmeans(comp$exp ~ comp$condition,
+          main = "Explore behaviour", 
+          xlab = "explore interaction over conditions", 
+          ylab="Interactions per min/per child")
+@
+
+<<echo=T>>=
+anova(lm(comp$exp ~ comp$condition))
+@
+
+<<fig=TRUE>>=
+par(las=2)
+plotmeans(comp$exp ~ interaction(comp$case,comp$condition),
+          main = "explore Interactions per condition per expected/unexpected",
+          xlab = "explore interaction over conditions", 
+          ylab="Interactions per min/per child")
+@
+
+<<echo=T>>=
+summary(aov((comp$exp ~ comp$condition*comp$case)))
+@
+
+
+<<fig=TRUE>>=
+par(las=2)
+plotmeans(rowSums(comp[,2:12]) ~ interaction(comp_eng$case,comp_eng$condition),
+          main = "Interactions (with engagement) per condition per expected/unexpected",
+          xlab = "Interaction over conditions", 
+          ylab="Interactions per min/per child")
+@
+
+<<echo=T>>=
+summary(aov((rowSums(comp[,2:12]) ~ comp_eng$condition*comp_eng$case)))
+@
+
+<<fig=TRUE>>=
+childactions = read.table("dat/children_engagement_idx.dat", header=T)
+childactions$sum <- rowSums(childactions[, 2:8])
+plot(childactions$sum, childactions$idx,
+     main = "Nb of interactions vs Anthropomorphism index (per child)",
+     xlab = "Nb of Interactions",
+     ylab = "Anthropomorphism Index")
+regr = lm(childactions$idx ~ childactions$sum)
+abline(regr)
+@
+
+
+<<echo=T>>=
+summary(regr)
+@
+
+<<fig=TRUE>>=
+groupactions = read.table("dat/group_engagement_idx.dat", header=T)
+groupactions$sum <- rowSums(groupactions[, 2:8])
+plot(groupactions$sum, groupactions$idx,
+      main = "Nb of interactions vs Anthropomorphism index (per group)",
+      xlab = "Nb of Interactions",
+      ylab = "Anthropomorphism Index")
+regr = lm(groupactions$idx ~ groupactions$sum)
+abline(regr)
+@
+
+
+<<echo=T>>=
+summary(regr)
+@
+
+
+\end{document}
