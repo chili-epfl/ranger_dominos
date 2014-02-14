@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ANNOTATION_DOCUMENT AUTHOR="" DATE="2014-01-10T10:49:35+01:00" FORMAT="2.7" VERSION="2.7" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.mpi.nl/tools/elan/EAFv2.7.xsd">
+<ANNOTATION_DOCUMENT AUTHOR="" DATE="2014-01-13T14:02:58+01:00" FORMAT="2.7" VERSION="2.7" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.mpi.nl/tools/elan/EAFv2.7.xsd">
     <HEADER MEDIA_FILE="" TIME_UNITS="milliseconds">
-        <MEDIA_DESCRIPTOR MEDIA_URL="file:///C:/Users/jfink/Documents/ranger box/study experiments/results/disobey1_130725/disobey1_130725.MTS" MIME_TYPE="unknown" RELATIVE_MEDIA_URL="./disobey1_130725.MTS"/>
+        <MEDIA_DESCRIPTOR MEDIA_URL="file:///C:/Users/jfink/Documents/ranger box/study experiments/results/disobey1_130725_ok/disobey1_130725.MTS" MIME_TYPE="unknown" RELATIVE_MEDIA_URL="./disobey1_130725.MTS"/>
         <PROPERTY NAME="lastUsedAnnotationId">143</PROPERTY>
     </HEADER>
     <TIME_ORDER>

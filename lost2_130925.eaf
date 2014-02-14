@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ANNOTATION_DOCUMENT AUTHOR="" DATE="2014-01-15T14:05:58+01:00" FORMAT="2.7" VERSION="2.7" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.mpi.nl/tools/elan/EAFv2.7.xsd">
+<ANNOTATION_DOCUMENT AUTHOR="" DATE="2014-01-22T19:22:47+01:00" FORMAT="2.7" VERSION="2.7" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.mpi.nl/tools/elan/EAFv2.7.xsd">
     <HEADER MEDIA_FILE="" TIME_UNITS="milliseconds">
-        <MEDIA_DESCRIPTOR MEDIA_URL="file:///C:/Users/jfink/Documents/ranger box/study experiments/results/lost2_130925/lost2_130925.MTS" MIME_TYPE="unknown" RELATIVE_MEDIA_URL="./lost2_130925.MTS"/>
+        <MEDIA_DESCRIPTOR MEDIA_URL="file:///C:/Users/jfink/Documents/ranger box/study experiments/results/lost2_130925_ok/lost2_130925.MTS" MIME_TYPE="unknown" RELATIVE_MEDIA_URL="./lost2_130925.MTS"/>
         <PROPERTY NAME="lastUsedAnnotationId">198</PROPERTY>
     </HEADER>
     <TIME_ORDER>
