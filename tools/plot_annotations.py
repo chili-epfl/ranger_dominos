@@ -23,10 +23,10 @@ COLOR_SCHEME = {"mis":"#6bff62",
 ACTIONS = []
 
 # full
-ALL_ACTIONS = [ "show", "talk", "call","put", "rem", "touch", "mis", "ges", "exp", "look", "play"]
+ALL_ACTIONS = [ "show", "talk", "call","put", "rem", "touch", "mis", "ges", "exp", "look"]
 
 # only 'engagement'
-ENGAGEMENT_ACTIONS = [ "show", "talk", "touch", "mis", "ges", "look", "play"]
+ENGAGEMENT_ACTIONS = [ "show", "talk", "touch", "mis", "ges", "look"]
 
 rgbcolors = [COLOR_SCHEME[act]  for act in ALL_ACTIONS]
 palette = "(" + ", ".join(["%s '%s'" % (i,c) for i, c in enumerate(rgbcolors)]) + ")"
@@ -63,7 +63,10 @@ def get_tiers(xml_root):
 
 def get_actions(xml_root, tier, run, timeslots):
 
-    interactions = dict(zip(ACTIONS, [0] * len(ACTIONS)))
+    interactions = {}
+    for a in ACTIONS:
+        interactions[a] = {"count":0, "duration":0.}
+
     rawactions = xml_root.findall("./TIER[@TIER_ID='%s']" % tier)[0]
 
     for action in rawactions:
@@ -73,11 +76,14 @@ def get_actions(xml_root, tier, run, timeslots):
         if starttime > run[0] and endtime < run[1]:
             name = action.find("ALIGNABLE_ANNOTATION").find("ANNOTATION_VALUE").text
             if name in interactions:
-                interactions[name] += 1
+                interactions[name]["count"] += 1 # count of occurences
+                interactions[name]["duration"] += (endtime - starttime) / 1000. # total duration for this interaction, in sec
+            #else:
+            #    print("Ignored action <%s>" % name)
 
     return interactions
 
-def prepare_plot(name, interactions, samplesize, yrange = None, anthropomorphism_idx = False):
+def prepare_plot(name, interactions, samplesize, plot_duration = False, yrange = None, anthropomorphism_idx = False):
     """
     :param interactions: a dict {"run name": {"action name": occurences, "action...}, "run...}
     """
@@ -89,7 +95,10 @@ def prepare_plot(name, interactions, samplesize, yrange = None, anthropomorphism
     with open("%s.plt"%name, "w") as f:
         f.write('set key autotitle columnheader\n')
         f.write('set xlabel "Runs"\n')
-        f.write('set ylabel "Interactions per minutes/per child"\n')
+        if plot_duration:
+            f.write('set ylabel "Duration of Interactions (runtime-normalized, per child)"\n')
+        else:
+            f.write('set ylabel "Count of Interactions (runtime-normalized, per child)"\n')
         f.write("set terminal pngcairo size 800,600 enhanced font 'Verdana,10'\n")
         if yrange:
             f.write("set yrange [0:%s]\n" % yrange)
@@ -105,14 +114,22 @@ def prepare_plot(name, interactions, samplesize, yrange = None, anthropomorphism
 
 
     with open("%s.dat" % name, "w") as f:
-        f.write("# Actions by run and type\n")
+        if plot_duration:
+            f.write("# Duration of Actions by run and type\n")
+        else:
+            f.write("# Count of Actions by run and type\n")
         f.write("Type\t" + "\t".join(ACTIONS) + "\n")
 
         for name, occurences in interactions.items():
             f.write("\"%s\"\t" % name)
 
             for a in ACTIONS:
-                f.write("%s\t" % occurences.get(a,"-"))
+                val = occurences.get(a,["-", "-"])
+                if plot_duration:
+                    f.write("%s\t" % val["duration"])
+                else: # occurence count
+                    f.write("%s\t" % val["count"])
+
 
             f.write("\n")
 
@@ -156,19 +173,21 @@ def prepare_sum_plot(name, interactions, yrange = None, anthropomorphism_idx = F
 def sum_occurences(actions1, actions2):
     sum_actions = OrderedDict()
     for a in ACTIONS:
-        sum_actions[a] = actions1[a] + actions2[a]
+        sum_actions[a] = { "count": actions1[a]["count"] + actions2[a]["count"], 
+                           "duration": actions1[a]["duration"] + actions2[a]["duration"] }
 
     return sum_actions
 
 def scale_occurences(actions, scalar):
     scaled_actions = OrderedDict()
     for a in ACTIONS:
-        scaled_actions[a] = float(actions[a]) * scalar
+        scaled_actions[a] = { "count":float(actions[a]["count"]) * scalar, 
+                              "duration": float(actions[a]["duration"]) * scalar }
 
     return scaled_actions
 
 
-def processfiles(name, files, perchild = False, perpair = False, yrange=None, sumplot = False):
+def processfiles(name, files, plot_duration = False, perchild = False, perpair = False, yrange=None, sumplot = False):
 
     if sumplot and (perchild or perpair):
         timenormalization = False
@@ -177,6 +196,7 @@ def processfiles(name, files, perchild = False, perpair = False, yrange=None, su
         sumplot = False
 
     total_interactions = 0
+    total_interactions_duration = 0
     interactions = OrderedDict()
     children_interactions = OrderedDict()
     groups_interactions = OrderedDict()
@@ -196,7 +216,8 @@ def processfiles(name, files, perchild = False, perpair = False, yrange=None, su
                 print("Run %s lasted %.2fmin" % (run_name, duration))
 
                 actions = get_actions(root, tier, run, timeslots)
-                total_interactions += sum(actions.values())
+                total_interactions += sum([val["count"] for val in actions.values()])
+                total_interactions_duration += sum([val["duration"] for val in actions.values()])
 
                 if timenormalization:
                     actions = scale_occurences(actions, 1/duration)
@@ -217,9 +238,10 @@ def processfiles(name, files, perchild = False, perpair = False, yrange=None, su
                 children_interactions[tiername] = sum_interactions
 
                 if not sumplot:
-                    prepare_plot(tiername, interactions, 1, yrange)
+                    prepare_plot(tiername, interactions, 1, plot_duration, yrange)
 
                 total_interactions = 0
+                total_interactions_duration = 0
                 interactions = OrderedDict()
 
         if perpair:
@@ -232,9 +254,10 @@ def processfiles(name, files, perchild = False, perpair = False, yrange=None, su
             groups_interactions[groupname] = sum_interactions
 
             if not sumplot:
-                prepare_plot(groupname, interactions, 2, yrange)
+                prepare_plot(groupname, interactions, 2, plot_duration, yrange)
 
             total_interactions = 0
+            total_interactions_duration = 0
             interactions = OrderedDict()
 
 
@@ -250,7 +273,7 @@ def processfiles(name, files, perchild = False, perpair = False, yrange=None, su
 
     elif not perchild and not perpair:
         print("Total interactions: %s" % total_interactions)
-        prepare_plot(name, interactions, len(files) * 2, yrange)
+        prepare_plot(name, interactions, len(files) * 2, plot_duration, yrange)
 
 
 if __name__ == '__main__':
@@ -260,6 +283,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generating datasets for the Domino experiment')
     parser.add_argument('-a', '--all', action='store_true',
                                 help='keep all interactions (not only engagement related ones')
+    parser.add_argument('-d', '--duration', action='store_true',
+                                help='use durations instead of count of occurences')
     parser.add_argument('-p', '--perpair', action='store_true',
                                 help='generate one dataset per pair of children')
     parser.add_argument('-c', '--perchild', action='store_true',
@@ -277,4 +302,4 @@ if __name__ == '__main__':
         ACTIONS = ALL_ACTIONS
     else:
         ACTIONS = ENGAGEMENT_ACTIONS
-    processfiles(args.name, args.eaf, args.perchild, args.perpair, args.yrange, args.sum)
+    processfiles(args.name, args.eaf, args.duration, args.perchild, args.perpair, args.yrange, args.sum)
