@@ -8,20 +8,17 @@
 library(RColorBrewer)
 library(gplots)
 
-disobey = read.table("dat/disobey.dat", header=T)
-lost = read.table("dat/lost.dat", header=T)
-mistake = read.table("dat/mistake.dat", header=T)
-global = read.table("dat/global.dat", header=T)
+global = read.table("dat/global_count.dat", header=T)
+global_duration = read.table("dat/global_duration.dat", header=T)
+
+global_eng = read.table("dat/active_count.dat", header=T)
+global_eng_duration = read.table("dat/active_duration.dat", header=T)
 
 
-comp <- rbind(disobey[1:14,], lost[1:14,], mistake[1:14,])
-comp$condition <- rep(c("disobey", "lost", "mistake"), each = 14)
-comp$case <- rep(c(rep("expected", 7), rep("unexpected", 7)), 3)
+disobey_eng = read.table("dat/active_count_disobey.dat", header=T)
+lost_eng = read.table("dat/active_count_lost.dat", header=T)
+mistake_eng = read.table("dat/active_count_mistake.dat", header=T)
 
-disobey_eng = read.table("dat/disobeyengagement.dat", header=T)
-lost_eng = read.table("dat/lostengagement.dat", header=T)
-mistake_eng = read.table("dat/mistakengagement.dat", header=T)
-global_eng = read.table("dat/globalengagement.dat", header=T)
 
 comp_eng <- rbind(disobey_eng[1:14,], lost_eng[1:14,], mistake_eng[1:14,])
 comp_eng$condition <- rep(c("disobey", "lost", "mistake"), each = 14)
@@ -29,72 +26,115 @@ comp_eng$case <- rep(c(rep("expected", 7), rep("unexpected", 7)), 3)
 @
 
 <<fig=TRUE>>=
-barplot(t(global[,2:12]), 
+barplot(t(global[,2:11]), 
         cex.names = 0.7, 
-        names.arg = disobey$Type, 
+        names.arg = global$Type, 
         col = brewer.pal(12, "Set3"), 
         xlab="Run",
-        ylab="Interactions per minute/per child",
-        legend = colnames(global[,2:12]),
-        main = "Total interactions")
+        ylab="Interactions count (per minute/per child)",
+        legend = colnames(global[,2:11]),
+        main = "Total count of interactions")
 @
 
 <<fig=TRUE>>=
-barplot(t(global_eng[,2:8]), 
+barplot(t(global_duration[,2:11]), 
         cex.names = 0.7, 
-        names.arg = disobey$Type, 
+        names.arg = global$Type, 
         col = brewer.pal(12, "Set3"), 
         xlab="Run",
-        ylab="Interactions per minute/per child",
-        legend = colnames(global_eng[,2:8]),
-        main = "Interactions with active engagement")
+        ylab="Interactions duration (runtime-normalized/per child)",
+        legend = colnames(global_duration[,2:11]),
+        main = "Total duration of interactions")
 @
 
 <<fig=TRUE>>=
-plotmeans(comp$exp ~ comp$condition,
-          main = "Explore behaviour", 
-          xlab = "explore interaction over conditions", 
-          ylab="Interactions per min/per child")
-@
-
-<<echo=T>>=
-anova(lm(comp$exp ~ comp$condition))
+barplot(t(global_eng[,2:7]), 
+        cex.names = 0.7, 
+        names.arg = global$Type, 
+        col = brewer.pal(12, "Set3"), 
+        xlab="Run",
+        ylab="Interactions count (per minute/per child)",
+        legend = colnames(global_eng[,2:7]),
+        main = "Count of interactions with active engagement")
 @
 
 <<fig=TRUE>>=
-par(las=2)
-plotmeans(comp$exp ~ interaction(comp$case,comp$condition),
-          main = "explore Interactions per condition per expected/unexpected",
-          xlab = "explore interaction over conditions", 
-          ylab="Interactions per min/per child")
+barplot(t(global_eng_duration[,2:7]), 
+        cex.names = 0.7, 
+        names.arg = global$Type, 
+        col = brewer.pal(12, "Set3"), 
+        xlab="Run",
+        ylab="Interactions duration (runtime-normalized/per child)",
+        legend = colnames(global_eng_duration[,2:7]),
+        main = "Duration of interactions with active engagement")
 @
 
-<<echo=T>>=
-summary(aov((comp$exp ~ comp$condition*comp$case)))
+<<fig=TRUE>>=
+barplot(t(disobey_eng[,2:7]), 
+        cex.names = 0.7, 
+        names.arg = global$Type, 
+        col = brewer.pal(12, "Set3"), 
+        xlab="Run",
+        ylab="Interactions duration (runtime-normalized/per child)",
+        legend = colnames(global_eng_duration[,2:7]),
+        main = "DISOBEY - Count interactions with active engagement")
+@
+
+<<fig=TRUE>>=
+barplot(t(mistake_eng[,2:7]), 
+        cex.names = 0.7, 
+        names.arg = global$Type, 
+        col = brewer.pal(12, "Set3"), 
+        xlab="Run",
+        ylab="Interactions duration (runtime-normalized/per child)",
+        legend = colnames(global_eng_duration[,2:7]),
+        main = "MISTAKE - Count interactions with active engagement")
+@
+
+<<fig=TRUE>>=
+barplot(t(lost_eng[,2:7]), 
+        cex.names = 0.7, 
+        names.arg = global$Type, 
+        col = brewer.pal(12, "Set3"), 
+        xlab="Run",
+        ylab="Interactions duration (runtime-normalized/per child)",
+        legend = colnames(global_eng_duration[,2:7]),
+        main = "LOST - Count interactions with active engagement")
 @
 
 
 <<fig=TRUE>>=
-par(las=2)
-plotmeans(rowSums(comp[,2:12]) ~ interaction(comp_eng$case,comp_eng$condition),
-          main = "Interactions (with engagement) per condition per expected/unexpected",
+plotmeans(rowSums(comp_eng[,2:7]) ~ comp_eng$condition,
+          main = "Interactions with active engagement\nper condition", 
           xlab = "Interaction over conditions", 
           ylab="Interactions per min/per child")
 @
 
 <<echo=T>>=
-summary(aov((rowSums(comp[,2:12]) ~ comp_eng$condition*comp_eng$case)))
+anova(lm(rowSums(comp_eng[,2:7]) ~ comp_eng$condition))
+@
+
+<<fig=TRUE>>=
+par(las=2)
+plotmeans(rowSums(comp_eng[,2:7]) ~ interaction(comp_eng$case,comp_eng$condition),
+          main = "Interactions with active engagement\nper condition per expected/unexpected",
+          xlab = "Interaction over conditions", 
+          ylab="Interactions per min/per child")
+@
+
+<<echo=T>>=
+summary(aov((rowSums(comp_eng[,2:7]) ~ comp_eng$condition*comp_eng$case)))
 @
 
 <<fig=TRUE>>=
 childactions = read.table("dat/children_engagement_idx.dat", header=T)
 childactions$sum <- rowSums(childactions[, 2:8])
 plot(childactions$sum, childactions$idx,
-     main = "Nb of interactions vs Anthropomorphism index (per child)",
+     main = "Nb of interactions with active engagement vs\n Qualitative Score (per child)",
      xlab = "Nb of Interactions",
      ylab = "Anthropomorphism Index")
 regr = lm(childactions$idx ~ childactions$sum)
-abline(regr)
+#abline(regr)
 @
 
 
@@ -106,7 +146,7 @@ summary(regr)
 groupactions = read.table("dat/group_engagement_idx.dat", header=T)
 groupactions$sum <- rowSums(groupactions[, 2:8])
 plot(groupactions$sum, groupactions$idx,
-      main = "Nb of interactions vs Anthropomorphism index (per group)",
+      main = "Nb of interactions with active engagement vs\n Anthropomorphism index (per group)",
       xlab = "Nb of Interactions",
       ylab = "Anthropomorphism Index")
 regr = lm(groupactions$idx ~ groupactions$sum)
